@@ -1,51 +1,20 @@
 #!/usr/bin/env python3
 """
-Vercel-compatible FastAPI backend for the Farming Advisory Agent
-Ultra-lightweight version - completely self-contained
+Vercel-compatible Flask backend for the Farming Advisory Agent
+Ultra-minimal version using Flask instead of FastAPI
 """
-from fastapi import FastAPI, HTTPException, Query, Path
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
-from typing import Optional, List
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 import os
 from datetime import datetime
-import time
+import json
 
-# Initialize FastAPI app
-app = FastAPI(
-    title="AI-Based Farming Advisory API",
-    description="Intelligent farming recommendations for Odisha, India",
-    version="1.0.0-lightweight",
-    docs_url="/api/docs",
-    redoc_url="/api/redoc"
-)
-
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Initialize Flask app
+app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 
 # Get API key from environment
 api_key = os.getenv('OPENWEATHER_API_KEY', '6e0d1f88ed58eff296b5ca0b3c7aa7fb')
-
-# Add performance timing middleware
-@app.middleware("http")
-async def add_performance_timing(request, call_next):
-    start_time = time.time()
-    response = await call_next(request)
-    process_time = time.time() - start_time
-    response.headers["X-Process-Time"] = str(process_time)
-    return response
-
-# Pydantic models
-class LocationRequest(BaseModel):
-    latitude: float = Field(..., ge=-90, le=90, description="Latitude coordinate")
-    longitude: float = Field(..., ge=-180, le=180, description="Longitude coordinate")
 
 # Odisha crop database (embedded)
 ODISHA_CROPS = {
@@ -54,133 +23,109 @@ ODISHA_CROPS = {
         "suitability_score": 0.95,
         "yield_prediction": "4.5-5.5 tons/hectare",
         "season": "Kharif (June-November)",
-        "water_requirement": "High (1200-1500mm)",
         "best_practices": [
             "Use high-yielding varieties like Swarna, MTU-1010",
             "Ensure proper drainage during monsoon",
             "Apply balanced fertilizers (NPK 120:60:40 kg/ha)"
-        ],
-        "risk_factors": ["Cyclones", "Flooding"]
+        ]
     },
     "maize": {
-        "name": "Maize",
+        "name": "Maize", 
         "suitability_score": 0.85,
         "yield_prediction": "6-8 tons/hectare",
         "season": "Kharif/Rabi",
-        "water_requirement": "Medium (600-800mm)",
         "best_practices": [
             "Plant during pre-monsoon (April-May)",
             "Use hybrid varieties for better yield",
             "Maintain 60cm row spacing"
-        ],
-        "risk_factors": ["Drought", "Pest attacks"]
+        ]
     },
     "groundnut": {
         "name": "Groundnut",
         "suitability_score": 0.80,
-        "yield_prediction": "2-3 tons/hectare",
+        "yield_prediction": "2-3 tons/hectare", 
         "season": "Kharif",
-        "water_requirement": "Medium (500-700mm)",
         "best_practices": [
             "Sow during June-July",
             "Use certified seeds",
             "Apply gypsum at flowering stage"
-        ],
-        "risk_factors": ["Leaf spot", "Pod rot"]
-    },
-    "sugarcane": {
-        "name": "Sugarcane",
-        "suitability_score": 0.75,
-        "yield_prediction": "80-100 tons/hectare",
-        "season": "Annual",
-        "water_requirement": "High (1500-2000mm)",
-        "best_practices": [
-            "Plant during February-March",
-            "Ensure adequate irrigation",
-            "Apply organic manure"
-        ],
-        "risk_factors": ["Red rot", "Drought"]
+        ]
     }
 }
 
-# Odisha location mapping
-ODISHA_LOCATIONS = {
-    "bhubaneswar": {"lat": 20.2961, "lon": 85.8245, "name": "Bhubaneswar, Odisha, India"},
-    "cuttack": {"lat": 20.4625, "lon": 85.8828, "name": "Cuttack, Odisha, India"},
-    "puri": {"lat": 19.8135, "lon": 85.8312, "name": "Puri, Odisha, India"},
-    "berhampur": {"lat": 19.3149, "lon": 84.7941, "name": "Berhampur, Odisha, India"},
-    "sambalpur": {"lat": 21.4669, "lon": 83.9812, "name": "Sambalpur, Odisha, India"}
-}
-
-def is_in_odisha(lat: float, lon: float) -> bool:
+def is_in_odisha(lat, lon):
     """Check if coordinates are in Odisha region"""
     return (19.0 <= lat <= 22.5) and (81.0 <= lon <= 87.5)
 
-def get_location_name(lat: float, lon: float) -> str:
+def get_location_name(lat, lon):
     """Get location name from coordinates"""
     if not is_in_odisha(lat, lon):
         return f"Location ({lat:.2f}, {lon:.2f})"
     
-    # Check if close to known cities
-    for city, info in ODISHA_LOCATIONS.items():
-        if abs(lat - info["lat"]) < 0.2 and abs(lon - info["lon"]) < 0.2:
-            return info["name"]
-    
-    return f"Odisha, India ({lat:.2f}, {lon:.2f})"
+    # Check major cities
+    if abs(lat - 20.2961) < 0.2 and abs(lon - 85.8245) < 0.2:
+        return "Bhubaneswar, Odisha, India"
+    elif abs(lat - 20.4625) < 0.2 and abs(lon - 85.8828) < 0.2:
+        return "Cuttack, Odisha, India"
+    elif abs(lat - 19.8135) < 0.2 and abs(lon - 85.8312) < 0.2:
+        return "Puri, Odisha, India"
+    else:
+        return f"Odisha, India ({lat:.2f}, {lon:.2f})"
 
-# API Routes
-@app.get("/")
-async def root():
+# Routes
+@app.route('/')
+def root():
     """Root endpoint"""
-    return JSONResponse({
+    return jsonify({
         "message": "🌾 AI-Based Farming Advisory API for Odisha",
         "status": "deployed_successfully",
-        "version": "1.0.0-lightweight",
-        "api_docs": "/api/docs",
+        "version": "1.0.0-flask",
+        "api_docs": "Available endpoints listed below",
         "endpoints": {
             "quick_recommendations": "/api/recommendations/quick",
-            "comprehensive_analysis": "/api/recommendations/comprehensive",
-            "location_lookup": "/api/location/{lat}/{lon}",
-            "api_status": "/api/status"
+            "comprehensive_analysis": "/api/recommendations/comprehensive", 
+            "location_lookup": "/api/location/<lat>/<lon>",
+            "api_status": "/api/status",
+            "health_check": "/api/health"
         }
     })
 
-@app.get("/api")
-async def api_info():
+@app.route('/api')
+def api_info():
     """API information"""
-    return {
+    return jsonify({
         "message": "AI-Based Farming Advisory API",
-        "version": "1.0.0-lightweight",
-        "deployment": "vercel_serverless",
+        "version": "1.0.0-flask",
+        "deployment": "vercel_serverless_flask",
         "status": "operational",
         "optimized_for": "Odisha, India",
         "endpoints": {
             "quick_recommendations": "/api/recommendations/quick",
             "comprehensive_analysis": "/api/recommendations/comprehensive",
-            "location_lookup": "/api/location/{lat}/{lon}",
+            "location_lookup": "/api/location/<lat>/<lon>",
             "api_status": "/api/status",
             "health_check": "/api/health"
         }
-    }
+    })
 
-@app.get("/api/health")
-async def health_check():
+@app.route('/api/health')
+def health_check():
     """Health check endpoint"""
-    return {
-        "status": "healthy", 
-        "service": "farming-advisory-api", 
-        "deployment": "vercel",
+    return jsonify({
+        "status": "healthy",
+        "service": "farming-advisory-api",
+        "deployment": "vercel_flask",
         "timestamp": datetime.now().isoformat(),
         "region": "odisha_optimized"
-    }
+    })
 
-@app.get("/api/status")
-async def get_api_status():
+@app.route('/api/status')
+def get_api_status():
     """Get API status"""
-    return {
+    return jsonify({
         'system_status': 'operational',
-        'deployment': 'vercel_serverless_lightweight',
-        'version': '1.0.0-lightweight',
+        'deployment': 'vercel_serverless_flask',
+        'version': '1.0.0-flask',
         'optimized_for': 'Odisha, India',
         'data_sources': {
             'weather': {
@@ -192,59 +137,64 @@ async def get_api_status():
                 'status': 'active',
                 'message': 'Rule-based crop recommendations for Odisha',
                 'crops_available': len(ODISHA_CROPS)
-            },
-            'location': {
-                'status': 'active',
-                'message': 'Odisha location mapping active',
-                'cities_mapped': len(ODISHA_LOCATIONS)
             }
         },
         'features': [
             'Odisha-optimized crop recommendations',
             'Rule-based agricultural intelligence',
             'Location-aware suggestions',
-            'Fast response times (<1s)'
+            'Fast response times'
         ],
         'production_ready': True
-    }
+    })
 
-@app.post("/api/recommendations/quick")
-async def get_quick_recommendations(request: LocationRequest):
+@app.route('/api/recommendations/quick', methods=['POST'])
+def get_quick_recommendations():
     """Get quick crop recommendations"""
     try:
-        lat, lon = request.latitude, request.longitude
+        data = request.get_json()
+        if not data or 'latitude' not in data or 'longitude' not in data:
+            return jsonify({"error": "Missing latitude or longitude"}), 400
+        
+        lat = float(data['latitude'])
+        lon = float(data['longitude'])
+        
+        # Validate coordinates
+        if not (-90 <= lat <= 90) or not (-180 <= lon <= 180):
+            return jsonify({"error": "Invalid coordinates"}), 400
+        
         location_name = get_location_name(lat, lon)
         
         if is_in_odisha(lat, lon):
             # Odisha-specific recommendations
             recommendations = [
                 {
-                    "crop": ODISHA_CROPS["rice"]["name"],
-                    "suitability_score": ODISHA_CROPS["rice"]["suitability_score"],
+                    "crop": "Rice",
+                    "suitability_score": 0.95,
                     "confidence": 0.9,
                     "reason": "Primary crop of Odisha, ideal for monsoon climate",
-                    "season": ODISHA_CROPS["rice"]["season"],
-                    "yield_prediction": ODISHA_CROPS["rice"]["yield_prediction"]
+                    "season": "Kharif (June-November)",
+                    "yield_prediction": "4.5-5.5 tons/hectare"
                 },
                 {
-                    "crop": ODISHA_CROPS["maize"]["name"],
-                    "suitability_score": ODISHA_CROPS["maize"]["suitability_score"],
+                    "crop": "Maize",
+                    "suitability_score": 0.85,
                     "confidence": 0.8,
                     "reason": "Excellent alternative crop, drought tolerant",
-                    "season": ODISHA_CROPS["maize"]["season"],
-                    "yield_prediction": ODISHA_CROPS["maize"]["yield_prediction"]
+                    "season": "Kharif/Rabi",
+                    "yield_prediction": "6-8 tons/hectare"
                 },
                 {
-                    "crop": ODISHA_CROPS["groundnut"]["name"],
-                    "suitability_score": ODISHA_CROPS["groundnut"]["suitability_score"],
+                    "crop": "Groundnut",
+                    "suitability_score": 0.80,
                     "confidence": 0.75,
                     "reason": "Good cash crop for Odisha soil conditions",
-                    "season": ODISHA_CROPS["groundnut"]["season"],
-                    "yield_prediction": ODISHA_CROPS["groundnut"]["yield_prediction"]
+                    "season": "Kharif",
+                    "yield_prediction": "2-3 tons/hectare"
                 }
             ]
         else:
-            # General recommendations for non-Odisha regions
+            # General recommendations
             recommendations = [
                 {
                     "crop": "Wheat",
@@ -256,7 +206,7 @@ async def get_quick_recommendations(request: LocationRequest):
                 }
             ]
         
-        return {
+        return jsonify({
             "location": f"{lat:.4f}, {lon:.4f}",
             "location_name": location_name,
             "region": "Odisha, India" if is_in_odisha(lat, lon) else "Outside Odisha",
@@ -264,20 +214,26 @@ async def get_quick_recommendations(request: LocationRequest):
             "analysis_type": "rule_based_quick",
             "timestamp": datetime.now().isoformat(),
             "note": "Optimized for Odisha agriculture"
-        }
+        })
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
+        return jsonify({"error": f"Analysis failed: {str(e)}"}), 500
 
-@app.post("/api/recommendations/comprehensive")
-async def get_comprehensive_recommendations(
-    request: LocationRequest,
-    max_crops: int = Query(5, ge=1, le=10, description="Maximum number of crops"),
-    detailed_explanations: bool = Query(True, description="Include detailed explanations")
-):
+@app.route('/api/recommendations/comprehensive', methods=['POST'])
+def get_comprehensive_recommendations():
     """Get comprehensive farming analysis"""
     try:
-        lat, lon = request.latitude, request.longitude
+        data = request.get_json()
+        if not data or 'latitude' not in data or 'longitude' not in data:
+            return jsonify({"error": "Missing latitude or longitude"}), 400
+        
+        lat = float(data['latitude'])
+        lon = float(data['longitude'])
+        
+        # Validate coordinates
+        if not (-90 <= lat <= 90) or not (-180 <= lon <= 180):
+            return jsonify({"error": "Invalid coordinates"}), 400
+        
         location_name = get_location_name(lat, lon)
         
         if is_in_odisha(lat, lon):
@@ -290,16 +246,9 @@ async def get_comprehensive_recommendations(
                     "confidence": 0.85,
                     "yield_prediction": crop_data["yield_prediction"],
                     "season": crop_data["season"],
-                    "water_requirement": crop_data["water_requirement"],
-                    "risk_factors": crop_data["risk_factors"]
+                    "best_practices": crop_data["best_practices"],
+                    "detailed_advice": f"For {crop_data['name']} cultivation in Odisha: Expected yield is {crop_data['yield_prediction']}. Best season is {crop_data['season']}."
                 }
-                
-                if detailed_explanations:
-                    rec["best_practices"] = crop_data["best_practices"]
-                    rec["detailed_advice"] = f"For {crop_data['name']} cultivation in Odisha: " + \
-                                           f"Expected yield is {crop_data['yield_prediction']}. " + \
-                                           f"Best season is {crop_data['season']}."
-                
                 recommendations.append(rec)
             
             weather_summary = {
@@ -309,7 +258,6 @@ async def get_comprehensive_recommendations(
                 "humidity": "High (70-85%)",
                 "growing_seasons": ["Kharif (June-Nov)", "Rabi (Dec-May)", "Summer (Mar-Jun)"]
             }
-            
         else:
             # Limited recommendations for non-Odisha
             recommendations = [
@@ -327,26 +275,23 @@ async def get_comprehensive_recommendations(
                 "note": "Weather analysis optimized for Odisha region"
             }
         
-        return {
+        return jsonify({
             "location": f"{lat:.4f}, {lon:.4f}",
             "location_name": location_name,
             "region": "Odisha, India" if is_in_odisha(lat, lon) else "Outside Odisha",
-            "recommendations": recommendations[:max_crops],
+            "recommendations": recommendations,
             "weather_summary": weather_summary,
             "analysis_type": "comprehensive_rule_based",
             "confidence": 0.8,
             "timestamp": datetime.now().isoformat(),
             "system_note": "Rule-based analysis optimized for Odisha agriculture"
-        }
+        })
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
+        return jsonify({"error": f"Analysis failed: {str(e)}"}), 500
 
-@app.get("/api/location/{latitude}/{longitude}")
-async def get_location_info(
-    latitude: float = Path(..., ge=-90, le=90),
-    longitude: float = Path(..., ge=-180, le=180)
-):
+@app.route('/api/location/<float:latitude>/<float:longitude>')
+def get_location_info(latitude, longitude):
     """Get location information"""
     try:
         location_name = get_location_name(latitude, longitude)
@@ -355,14 +300,16 @@ async def get_location_info(
         # Determine city if in Odisha
         city = "Unknown"
         if is_odisha_region:
-            for city_key, city_info in ODISHA_LOCATIONS.items():
-                if abs(latitude - city_info["lat"]) < 0.2 and abs(longitude - city_info["lon"]) < 0.2:
-                    city = city_key.title()
-                    break
-            if city == "Unknown":
+            if abs(latitude - 20.2961) < 0.2 and abs(longitude - 85.8245) < 0.2:
+                city = "Bhubaneswar"
+            elif abs(latitude - 20.4625) < 0.2 and abs(longitude - 85.8828) < 0.2:
+                city = "Cuttack"
+            elif abs(latitude - 19.8135) < 0.2 and abs(longitude - 85.8312) < 0.2:
+                city = "Puri"
+            else:
                 city = "Odisha"
         
-        return {
+        return jsonify({
             'coordinates': f"{latitude:.4f}, {longitude:.4f}",
             'location_name': location_name,
             'details': {
@@ -375,25 +322,23 @@ async def get_location_info(
             },
             'agricultural_zone': 'Odisha Agricultural Zone' if is_odisha_region else 'Outside Coverage Area',
             'system_optimized': is_odisha_region
-        }
+        })
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Location lookup failed: {str(e)}")
+        return jsonify({"error": f"Location lookup failed: {str(e)}"}), 500
 
 # Error handlers
-@app.exception_handler(ValueError)
-async def value_error_handler(request, exc):
-    return JSONResponse(
-        status_code=400,
-        content={"error": "Invalid input", "detail": str(exc)}
-    )
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({"error": "Endpoint not found"}), 404
 
-@app.exception_handler(Exception)
-async def general_exception_handler(request, exc):
-    return JSONResponse(
-        status_code=500,
-        content={"error": "Internal server error", "detail": "Please try again later"}
-    )
+@app.errorhandler(500)
+def internal_error(error):
+    return jsonify({"error": "Internal server error"}), 500
 
-# Export the app for Vercel
-handler = app
+# For Vercel
+def handler(request):
+    return app(request.environ, lambda status, headers: None)
+
+if __name__ == '__main__':
+    app.run(debug=True)
