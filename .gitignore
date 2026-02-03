@@ -26,6 +26,7 @@ farming_env/
 venv/
 env/
 ENV/
+.venv/
 
 # Environment variables
 .env.local
@@ -50,9 +51,11 @@ Thumbs.db
 *.log
 logs/
 
-# Cache
-data/cache/*.json
-data/ndvi_cache/*.json
+# Cache files - EXCLUDE ALL CACHE
+data/cache/
+data/ndvi_cache/
+*.cache
+cache/
 
 # Models (keep the .pkl files but ignore training artifacts)
 *.joblib
@@ -73,3 +76,18 @@ model_training_logs/
 .mypy_cache/
 .dmypy.json
 dmypy.json
+
+# Large files that shouldn't be in deployment
+*.zip
+*.tar.gz
+*.rar
+
+# Test files (not needed in production)
+test_*.py
+*_test.py
+
+# Development files
+demo.py
+demo_web_ui.py
+deploy_production.py
+deploy_vercel.py

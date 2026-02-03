@@ -1,0 +1,26 @@
+# Exclude from Vercel deployment
+data/cache/
+data/ndvi_cache/
+__pycache__/
+*.pyc
+test_*.py
+*_test.py
+demo*.py
+deploy_*.py
+farming_env/
+.venv/
+.env.local
+*.log
+*.tmp
+.DS_Store
+README_DEPLOYMENT.md
+VERCEL_DEPLOYMENT_GUIDE.md
+ODISHA_FARMING_GUIDE.md
+COMPLETE_SYSTEM_OVERVIEW.md
+WEB_UI_GUIDE.md
+PERFORMANCE_REPORT.md
+PRODUCTION_STATUS.md
+PROJECT_STRUCTURE.md
+USAGE.md
+performance_results.json
+production_config.json
