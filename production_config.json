@@ -1,0 +1,29 @@
+{
+  "system": {
+    "version": "1.0.0",
+    "environment": "production",
+    "frozen": true,
+    "deployment_date": "2026-02-02T16:28:34.954096"
+  },
+  "api": {
+    "host": "0.0.0.0",
+    "port": 8000,
+    "workers": 4,
+    "timeout": 30
+  },
+  "caching": {
+    "weather_cache_hours": 6,
+    "soil_cache_permanent": true,
+    "ndvi_cache_days": 7
+  },
+  "ml": {
+    "model_version": "1.0.0",
+    "confidence_threshold": 0.6,
+    "use_real_data": true
+  },
+  "safety": {
+    "advisory_only": true,
+    "confidence_warnings": true,
+    "disclaimer_required": true
+  }
+}

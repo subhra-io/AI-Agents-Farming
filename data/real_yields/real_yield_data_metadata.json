@@ -1,0 +1,51 @@
+{
+  "filename": "real_yield_data.csv",
+  "created_date": "2026-02-02T16:28:33.758184",
+  "record_count": 110,
+  "data_quality": {
+    "total_records": 110,
+    "unique_crops": 10,
+    "unique_locations": 22,
+    "year_range": "2022 - 2023",
+    "data_sources": [
+      "USDA",
+      "India_Gov",
+      "Brazil_IBGE",
+      "Australia_ABS",
+      "EU_Eurostat",
+      "Kenya_Gov",
+      "Philippines_PSA",
+      "Vietnam_GSO",
+      "USDA_California",
+      "Italy_ISTAT",
+      "Netherlands_CBS",
+      "UK_DEFRA",
+      "France_Agreste",
+      "Ukraine_SSSU"
+    ],
+    "yield_statistics": {
+      "min_yield": 678.3585784559156,
+      "max_yield": 87976.20951430287,
+      "mean_yield": 20485.939817092312,
+      "std_yield": 27392.58665099614
+    },
+    "missing_values": {
+      "latitude": 0,
+      "longitude": 0,
+      "temperature": 0,
+      "humidity": 0,
+      "precipitation": 0,
+      "ph": 0,
+      "organic_matter": 0,
+      "month": 0,
+      "soil_type_encoded": 0,
+      "crop_name": 0,
+      "yield": 0,
+      "source": 0,
+      "year": 0,
+      "data_quality": 0,
+      "confidence": 0
+    },
+    "quality_score": 0.828
+  }
+}

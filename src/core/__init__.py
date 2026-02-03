@@ -1,0 +1,1 @@
+# Core farming advisory components

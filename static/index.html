@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌾 AI Farming Advisor</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌾</text></svg>">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <span class="logo-icon">🌾</span>
+                <h1>AI Farming Advisor</h1>
+            </div>
+            <p class="tagline">Get intelligent crop recommendations for your location</p>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Location Input Section -->
+            <section class="input-section">
+                <div class="card">
+                    <h2>📍 Your Farm Location</h2>
+                    <div class="location-input">
+                        <div class="input-group">
+                            <label for="latitude">Latitude</label>
+                            <input type="number" id="latitude" placeholder="e.g., 40.7128" step="any" min="-90" max="90">
+                        </div>
+                        <div class="input-group">
+                            <label for="longitude">Longitude</label>
+                            <input type="number" id="longitude" placeholder="e.g., -74.0060" step="any" min="-180" max="180">
+                        </div>
+                    </div>
+                    
+                    <div class="location-help">
+                        <button type="button" class="btn-secondary" onclick="getCurrentLocation()">
+                            📱 Use My Location
+                        </button>
+                        <button type="button" class="btn-secondary" onclick="lookupLocation()">
+                            🔍 Lookup Place Name
+                        </button>
+                        <button type="button" class="btn-secondary" onclick="showOdishaLocations()">
+                            🏛️ Odisha Locations
+                        </button>
+                        <small>Or enter coordinates manually</small>
+                    </div>
+
+                    <!-- Analysis Options -->
+                    <div class="analysis-options">
+                        <h3>Analysis Type</h3>
+                        <div class="radio-group">
+                            <label class="radio-option">
+                                <input type="radio" name="analysisType" value="quick" checked>
+                                <span class="radio-custom"></span>
+                                <div class="radio-content">
+                                    <strong>⚡ Quick Analysis</strong>
+                                    <small>Fast crop recommendations (2-3 seconds)</small>
+                                </div>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="analysisType" value="comprehensive">
+                                <span class="radio-custom"></span>
+                                <div class="radio-content">
+                                    <strong>🔬 Comprehensive Analysis</strong>
+                                    <small>Detailed analysis with satellite data (5-10 seconds)</small>
+                                </div>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="analysisType" value="ndvi">
+                                <span class="radio-custom"></span>
+                                <div class="radio-content">
+                                    <strong>🛰️ Satellite Analysis</strong>
+                                    <small>Vegetation health from satellite imagery</small>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn-primary" onclick="getRecommendations()">
+                        <span class="btn-text">Get Crop Recommendations</span>
+                        <span class="btn-loading" style="display: none;">
+                            <span class="spinner"></span> Analyzing...
+                        </span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section class="results-section" id="resultsSection" style="display: none;">
+                <div class="card">
+                    <div class="results-header">
+                        <h2 id="resultsTitle">📊 Analysis Results</h2>
+                        <div class="results-meta" id="resultsMeta"></div>
+                    </div>
+                    <div id="resultsContent"></div>
+                </div>
+            </section>
+
+            <!-- Error Section -->
+            <section class="error-section" id="errorSection" style="display: none;">
+                <div class="card error-card">
+                    <h2>❌ Analysis Error</h2>
+                    <p id="errorMessage"></p>
+                    <button type="button" class="btn-secondary" onclick="hideError()">Try Again</button>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <p>🌾 AI-Based Farming Advisory Agent v1.0.0</p>
+                <p><small>Powered by real crop data, satellite imagery, and machine learning</small></p>
+                <div class="footer-links">
+                    <a href="#" onclick="showAbout()">About</a>
+                    <a href="#" onclick="showHelp()">Help</a>
+                    <a href="/cache/stats" target="_blank">System Stats</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- About Modal -->
+    <div id="aboutModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🌾 About AI Farming Advisor</h2>
+                <button class="modal-close" onclick="hideModal('aboutModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>The AI Farming Advisor uses advanced machine learning and satellite data to provide intelligent crop recommendations based on your location's environmental conditions.</p>
+                
+                <h3>🔬 How it works:</h3>
+                <ul>
+                    <li><strong>Weather Analysis:</strong> Real-time weather data and forecasts</li>
+                    <li><strong>Soil Assessment:</strong> Geographic soil type and fertility analysis</li>
+                    <li><strong>Satellite Monitoring:</strong> NDVI vegetation health from space</li>
+                    <li><strong>ML Predictions:</strong> XGBoost models trained on real crop yield data</li>
+                    <li><strong>Scientific Rules:</strong> Evidence-based crop suitability scoring</li>
+                </ul>
+
+                <h3>📊 Data Sources:</h3>
+                <ul>
+                    <li>OpenWeatherMap API for weather data</li>
+                    <li>Sentinel-2 satellite imagery for vegetation monitoring</li>
+                    <li>Real crop yield data from USDA, India Gov, Brazil IBGE, EU Eurostat</li>
+                    <li>Scientific crop databases and agricultural research</li>
+                </ul>
+
+                <p><strong>⚠️ Advisory Only:</strong> This system provides recommendations for informational purposes. Always consult local agricultural experts and extension services for final decisions.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="helpModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>❓ How to Use</h2>
+                <button class="modal-close" onclick="hideModal('helpModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h3>📍 Getting Your Location:</h3>
+                <ol>
+                    <li><strong>Use GPS:</strong> Click "Use My Location" to automatically detect coordinates</li>
+                    <li><strong>Manual Entry:</strong> Enter latitude and longitude manually</li>
+                    <li><strong>Find Coordinates:</strong> Use Google Maps - right-click any location to see coordinates</li>
+                </ol>
+
+                <h3>🔍 Analysis Types:</h3>
+                <ul>
+                    <li><strong>Quick Analysis:</strong> Fast crop recommendations with basic scoring</li>
+                    <li><strong>Comprehensive:</strong> Detailed analysis including yield predictions and explanations</li>
+                    <li><strong>Satellite Analysis:</strong> Focus on vegetation health and risk assessment</li>
+                </ul>
+
+                <h3>📊 Understanding Results:</h3>
+                <ul>
+                    <li><strong>Grade A-F:</strong> Crop suitability score (A = Excellent, F = Not recommended)</li>
+                    <li><strong>NDVI:</strong> Vegetation health index (0.0-1.0, higher is better)</li>
+                    <li><strong>Risk Level:</strong> Low/Medium/High/Critical based on conditions</li>
+                    <li><strong>Yield Prediction:</strong> Expected harvest in kg per hectare</li>
+                </ul>
+
+                <h3>🌍 Example Coordinates:</h3>
+                <ul>
+                    <li><strong>Iowa, USA:</strong> 42.0, -93.5 (Corn Belt)</li>
+                    <li><strong>Punjab, India:</strong> 30.9, 75.8 (Wheat Region)</li>
+                    <li><strong>São Paulo, Brazil:</strong> -23.5, -46.6 (Soybean Area)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Odisha Locations Modal -->
+    <div id="odishaModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🏛️ Odisha Farming Locations</h2>
+                <button class="modal-close" onclick="hideModal('odishaModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Select accurate coordinates for major Odisha agricultural regions:</p>
+                
+                <h3>🏛️ Major Cities</h3>
+                <div class="location-grid">
+                    <button class="location-btn" onclick="setLocation(20.2961, 85.8245, 'Bhubaneswar')">
+                        <strong>Bhubaneswar</strong><br>
+                        <small>20.2961, 85.8245</small><br>
+                        <em>Capital - Central Plains</em>
+                    </button>
+                    <button class="location-btn" onclick="setLocation(20.4625, 85.8828, 'Cuttack')">
+                        <strong>Cuttack</strong><br>
+                        <small>20.4625, 85.8828</small><br>
+                        <em>Commercial Center</em>
+                    </button>
+                    <button class="location-btn" onclick="setLocation(19.8135, 85.8312, 'Puri')">
+                        <strong>Puri</strong><br>
+                        <small>19.8135, 85.8312</small><br>
+                        <em>Coastal Agriculture</em>
+                    </button>
+                </div>
+
+                <h3>🌾 Agricultural Districts</h3>
+                <div class="location-grid">
+                    <button class="location-btn" onclick="setLocation(20.0840, 85.4418, 'Khordha')">
+                        <strong>Khordha</strong><br>
+                        <small>20.0840, 85.4418</small><br>
+                        <em>Central Plains</em>
+                    </button>
+                    <button class="location-btn" onclick="setLocation(19.3149, 84.7941, 'Ganjam')">
+                        <strong>Ganjam</strong><br>
+                        <small>19.3149, 84.7941</small><br>
+                        <em>Southern Plateau</em>
+                    </button>
+                    <button class="location-btn" onclick="setLocation(21.9407, 83.9792, 'Mayurbhanj')">
+                        <strong>Mayurbhanj</strong><br>
+                        <small>21.9407, 83.9792</small><br>
+                        <em>Northern Hills</em>
+                    </button>
+                </div>
+
+                <h3>🏖️ Coastal Zones</h3>
+                <div class="location-grid">
+                    <button class="location-btn" onclick="setLocation(20.4304, 86.7115, 'Jagatsinghpur')">
+                        <strong>Jagatsinghpur</strong><br>
+                        <small>20.4304, 86.7115</small><br>
+                        <em>Delta Region</em>
+                    </button>
+                    <button class="location-btn" onclick="setLocation(20.2329, 86.4292, 'Kendrapara')">
+                        <strong>Kendrapara</strong><br>
+                        <small>20.2329, 86.4292</small><br>
+                        <em>Coastal Plains</em>
+                    </button>
+                    <button class="location-btn" onclick="setLocation(22.2497, 84.9045, 'Balasore')">
+                        <strong>Balasore</strong><br>
+                        <small>22.2497, 84.9045</small><br>
+                        <em>Northern Coastal</em>
+                    </button>
+                </div>
+
+                <h3>🌿 Agro-Climatic Zones</h3>
+                <div class="location-grid">
+                    <button class="location-btn" onclick="setLocation(21.0, 85.5, 'North Central Plateau')">
+                        <strong>North Central Plateau</strong><br>
+                        <small>21.0, 85.5</small><br>
+                        <em>Rice & Wheat Belt</em>
+                    </button>
+                    <button class="location-btn" onclick="setLocation(19.5, 85.5, 'Coastal Plain')">
+                        <strong>Coastal Plain</strong><br>
+                        <small>19.5, 85.5</small><br>
+                        <em>Rice & Coconut</em>
+                    </button>
+                    <button class="location-btn" onclick="setLocation(20.0, 83.5, 'Western Zone')">
+                        <strong>Western Zone</strong><br>
+                        <small>20.0, 83.5</small><br>
+                        <em>Tribal Agriculture</em>
+                    </button>
+                </div>
+
+                <div class="odisha-tips">
+                    <h3>💡 Odisha Farming Tips</h3>
+                    <ul>
+                        <li><strong>Best Crops:</strong> Rice, Maize, Cotton, Sugarcane</li>
+                        <li><strong>Monsoon Season:</strong> June to September</li>
+                        <li><strong>Soil Types:</strong> Red laterite, alluvial, coastal sandy</li>
+                        <li><strong>Climate:</strong> Tropical monsoon with high humidity</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+{
+  "deployment_type": "vercel_serverless",
+  "api_structure": {
+    "entry_point": "api/index.py",
+    "static_files": "static/",
+    "endpoints": [
+      "/api/recommendations/quick",
+      "/api/recommendations/comprehensive",
+      "/api/location/{lat}/{lon}",
+      "/api/ndvi/{lat}/{lon}",
+      "/api/status",
+      "/api/health"
+    ]
+  },
+  "environment_variables": {
+    "OPENWEATHER_API_KEY": "Required - set in Vercel dashboard"
+  },
+  "features": [
+    "Real weather data integration",
+    "Location name lookup",
+    "NDVI satellite analysis",
+    "ML-based crop recommendations",
+    "Odisha-optimized coordinates",
+    "Performance caching (<2s response)"
+  ],
+  "deployment_date": "2026-02-03",
+  "production_ready": true
+}
