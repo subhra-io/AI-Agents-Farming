@@ -26,11 +26,5 @@
   ],
   "env": {
     "OPENWEATHER_API_KEY": "@openweather_api_key"
-  },
-  "functions": {
-    "api/index.py": {
-      "maxDuration": 30
-    }
-  },
-  "outputDirectory": "static"
+  }
 }
