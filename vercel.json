@@ -25,6 +25,6 @@
     }
   ],
   "env": {
-    "OPENWEATHER_API_KEY": "@openweather_api_key"
+    "OPENWEATHER_API_KEY": "6e0d1f88ed58eff296b5ca0b3c7aa7fb"
   }
 }
